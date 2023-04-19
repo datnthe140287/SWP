@@ -89,24 +89,25 @@ impl Token {
     
     // Transfers tokens from the owner's account to the recipient's account,
     // using the allowance mechanism that allows the spender to transfer the tokens.
-    pub fn transfer_from(&mut self, owner_id: AccountId, recipient_id: AccountId, amount: u128) -> bool {
-        let spender_id = env::predecessor_account_id();
-        let allowance = self.storage.allowances.get(&(owner_id, spender_id)).unwrap_or(0);
-        assert!(
-            allowance >= amount,
-            "Not enough allowance to transfer."
-        );
-        let owner_balance = self.storage.balances.get(&owner_id).unwrap_or(0);
-        assert!(
-            owner_balance >= amount,
-            "Not enough balance to transfer."
-        );
-        self.storage.allowances.insert(&(owner_id, spender_id), &(allowance - amount));
-        self.storage.balances.insert(&owner_id, &(owner_balance - amount));
-        let recipient_balance = self.storage.balances.get(&recipient_id).unwrap_or(0);
-        self.storage.balances.insert(&recipient_id, &(recipient_balance + amount));
-        true
-    }
+    pub fn transfer_from(&mut self, owner_id: AccountId, to_id: AccountId, amount: u128) -> bool {
+    let spender_id = env::predecessor_account_id();
+    let allowance = self.storage.allowances.get(&(owner_id.clone(), spender_id.clone())).unwrap_or(0);
+    assert!(
+        allowance >= amount,
+        "Not enough allowance to transfer."
+    );
+    let owner_balance = self.storage.balances.get(&owner_id.clone()).unwrap_or(0);
+    assert!(
+        owner_balance >= amount,
+        "Not enough balance to transfer."
+    );
+    let to_balance = self.storage.balances.get(&to_id).unwrap_or(0);
+
+    self.storage.allowances.insert(&(owner_id.clone(), spender_id.clone()), &(allowance - amount));
+    self.storage.balances.insert(&owner_id.clone(), &(owner_balance - amount));
+    self.storage.balances.insert(&to_id, &(to_balance + amount));
+    true
+}
     
     // Mints new tokens and adds them to the specified account
     pub fn mint(&mut self, account_id: AccountId, amount: u128) {
@@ -136,5 +137,7 @@ impl Token {
         self.storage.balances.insert(&sender_id, &(sender_balance - amount));
         self.total_supply -= amount;
         true
-    }
+    }   
 }
+
+
